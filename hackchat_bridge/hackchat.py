@@ -2,6 +2,7 @@ from threading import Thread
 import json
 import websocket
 from time import sleep
+from jarbas_utils.log import LOG
 
 
 class HackChat:
@@ -48,7 +49,7 @@ class HackChat:
         while True:
             result = json.loads(self.ws.recv())
             if self.debug:
-                print(result)
+                LOG.debug("[Raw Hackchat] " + str(result))
 
             if result["cmd"] == "chat" and not result["nick"] == self.nick:
                 for handler in list(self.on_message):

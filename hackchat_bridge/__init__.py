@@ -10,12 +10,11 @@ platform = "JarbasHackChatBridgeV0.2"
 
 class JarbasHackChatBridgeProtocol(HiveMindTerminalProtocol):
 
-    def onConnect(self, response):
-        LOG.info("HiveMind connected: {0}".format(response.peer))
-        self.factory.client = self
-        self.factory.status = "connected"
+    def onOpen(self):
+        super().onOpen()
         LOG.info("Channel: {0}".format(self.factory.channel))
         LOG.info("Username: {0}".format(self.factory.username))
+        self.factory.start_hackchat()
 
     def onMessage(self, payload, isBinary):
         if not isBinary:
@@ -60,6 +59,8 @@ class JarbasHackChatBridge(HiveMindTerminal):
         self.username = username
         self.channel = channel
         self.hackchat = HackChat(self.username, self.channel)
+
+    def start_hackchat(self):
         self.hackchat.on_message += [self.on_hack_message]
         self.hackchat.on_join += [self.on_hack_join]
         self.hackchat.on_open += [self.on_hack_open]
