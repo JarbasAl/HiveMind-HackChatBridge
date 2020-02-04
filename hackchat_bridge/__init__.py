@@ -18,7 +18,7 @@ class JarbasHackChatBridgeProtocol(HiveMindTerminalProtocol):
 
     def onMessage(self, payload, isBinary):
         if not isBinary:
-            payload = payload.decode("utf-8")
+            payload = self.decode(payload)
             msg = json.loads(payload)
 
             utterance = ""
