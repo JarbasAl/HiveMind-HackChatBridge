@@ -1,11 +1,10 @@
-import json
 from jarbas_utils import create_daemon
-from jarbas_hive_mind.exceptions import UnauthorizedKeyError
 from jarbas_hive_mind.slave.terminal import HiveMindTerminalProtocol, HiveMindTerminal
 from jarbas_utils.log import LOG
+from jarbas_utils.messagebus import Message
 from hackchat_bridge.hackchat import HackChat
 
-platform = "JarbasHackChatBridgeV0.2"
+platform = "JarbasHackChatBridgeV0.3"
 
 
 class JarbasHackChatBridgeProtocol(HiveMindTerminalProtocol):
@@ -15,38 +14,6 @@ class JarbasHackChatBridgeProtocol(HiveMindTerminalProtocol):
         LOG.info("Channel: {0}".format(self.factory.channel))
         LOG.info("Username: {0}".format(self.factory.username))
         self.factory.start_hackchat()
-
-    def onMessage(self, payload, isBinary):
-        if not isBinary:
-            payload = self.decode(payload)
-            msg = json.loads(payload)
-
-            utterance = ""
-            if msg.get("type", "") == "speak":
-                utterance = msg["data"]["utterance"]
-            elif msg.get("type", "") == "hive.complete_intent_failure":
-                utterance = "I don't know how to answer that"
-
-            if utterance:
-                user_data = msg.get("context", {}).get("user", "")
-                user = user_data.get("hackchat_username")
-                if user not in self.factory.online_users:
-                    LOG.error("Discarding reply, invalid hack chat user: " + user)
-                    return
-
-                utterance = "@{} , ".format(user) + utterance
-                self.factory.hackchat.send_message(utterance)
-        else:
-            pass
-
-    def onClose(self, wasClean, code, reason):
-        LOG.info("HiveMind WebSocket connection closed: {0}".format(reason))
-        self.factory.client = None
-        self.factory.status = "disconnected"
-        if "WebSocket connection upgrade failed" in reason:
-            # key rejected
-            LOG.error("Key rejected")
-            raise UnauthorizedKeyError
 
 
 class JarbasHackChatBridge(HiveMindTerminal):
@@ -95,7 +62,24 @@ class JarbasHackChatBridge(HiveMindTerminal):
                        "destination": "hive_mind",
                        "platform": platform,
                        "user": {"hackchat_username": user}}}
-            msg = json.dumps(msg)
-            msg = bytes(msg, encoding="utf-8")
-            self.client.sendMessage(msg, False)
+            self.send_to_hivemind_bus(msg)
+
+    def speak(self, utterance, user_data):
+        user = user_data["hackchat_username"]
+        utterance = "@{} , ".format(user) + utterance
+        LOG.debug("Message: " + utterance)
+        self.hackchat.send_message(utterance)
+
+    def handle_incoming_mycroft(self, message):
+        assert isinstance(message, Message)
+        user_data = message.context.get("user")
+
+        if user_data:
+            if message.msg_type == "speak":
+                utterance = message.data["utterance"]
+                self.speak(utterance, user_data)
+            elif message.msg_type == "hive.complete_intent_failure":
+                LOG.error("complete intent failure")
+                utterance = 'I don\'t know how to answer that'
+                self.speak(utterance, user_data)
 

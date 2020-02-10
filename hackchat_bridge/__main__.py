@@ -4,10 +4,10 @@ from jarbas_hive_mind import HiveMindConnection
 
 def connect_hackchat_to_hivemind(channel,
                                  username="Jarbas_BOT",
-                                 host="127.0.0.1",
-                                 crypto_key="1L6z3WAtk4c5U9sS",
+                                 host="wss://127.0.0.1",
+                                 crypto_key=None,
                                  port=5678, name="JarbasHackChatBridge",
-                                 key="hackchat_key", useragent=platform):
+                                 key="dummy_key", useragent=platform):
     con = HiveMindConnection(host, port)
 
     terminal = JarbasHackChatBridge(channel=channel,
@@ -16,7 +16,7 @@ def connect_hackchat_to_hivemind(channel,
                                     headers=con.get_headers(name, key),
                                     useragent=useragent)
 
-    con.secure_connect(terminal)
+    con.connect(terminal)
 
 
 if __name__ == '__main__':
