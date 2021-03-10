@@ -7,7 +7,7 @@ def connect_hackchat_to_hivemind(channel,
                                  host="wss://127.0.0.1",
                                  crypto_key=None,
                                  port=5678, name="JarbasHackChatBridge",
-                                 key="dummy_key", useragent=platform):
+                                 key="unsafe", useragent=platform):
     con = HiveMindConnection(host, port)
 
     terminal = JarbasHackChatBridge(channel=channel,
@@ -21,4 +21,4 @@ def connect_hackchat_to_hivemind(channel,
 
 if __name__ == '__main__':
     # TODO argparse
-    connect_hackchat_to_hivemind("JarbasAi")
+    connect_hackchat_to_hivemind("GoldyfruitHiveMindDemo")

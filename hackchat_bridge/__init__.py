@@ -1,7 +1,7 @@
-from jarbas_utils import create_daemon
+from ovos_utils import create_daemon
 from jarbas_hive_mind.slave.terminal import HiveMindTerminalProtocol, HiveMindTerminal
-from jarbas_utils.log import LOG
-from jarbas_utils.messagebus import Message
+from ovos_utils.log import LOG
+from ovos_utils.messagebus import Message
 from hackchat_bridge.hackchat import HackChat
 
 platform = "JarbasHackChatBridgeV0.3"
@@ -53,7 +53,7 @@ class JarbasHackChatBridge(HiveMindTerminal):
 
     def on_hack_message(self, connector, message, user):
         utterance = message.lower().strip()
-        if self.client and "@" + self.username.lower() in utterance:
+        if self.client and user != self.username:
             utterance = utterance.replace("@" + self.username.lower(), "")
             msg = {"data": {"utterances": [utterance], "lang": "en-us"},
                    "type": "recognizer_loop:utterance",
